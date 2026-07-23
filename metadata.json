@@ -1,0 +1,6 @@
+{
+  "name": "Simulasi Genetika Hukum Mendel",
+  "description": "Simulasi interaktif persilangan monohibrid dan dihibrid Hukum Mendel dengan Tabel Punnett animated, analisis rasio fenotipe/genotipe, dan rangkuman materi biologi SMA.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
