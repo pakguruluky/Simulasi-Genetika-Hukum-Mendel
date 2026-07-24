@@ -1,7 +1,7 @@
 import React from 'react';
 import { CrossMode, PresetCross } from '../types/genetics';
 import { PRESET_CROSSES } from '../data/presets';
-import { Dna, RefreshCw, BookOpen, HelpCircle, PlusCircle, Sparkles, Share2 } from 'lucide-react';
+import { Dna, RefreshCw, BookOpen, HelpCircle, PlusCircle, Sparkles, Share2, FileText } from 'lucide-react';
 
 interface HeaderProps {
   currentMode: CrossMode;
@@ -12,6 +12,7 @@ interface HeaderProps {
   onOpenQuiz: () => void;
   onOpenCustomTrait: () => void;
   onToggleTheoryPanel: () => void;
+  onOpenLkpd: () => void;
   isTheoryOpen: boolean;
   onCopySummary: () => void;
 }
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenQuiz,
   onOpenCustomTrait,
   onToggleTheoryPanel,
+  onOpenLkpd,
   isTheoryOpen,
   onCopySummary,
 }) => {
@@ -134,6 +136,16 @@ export const Header: React.FC<HeaderProps> = ({
             >
               <HelpCircle className="w-4 h-4" />
               <span>Kuis SMA</span>
+            </button>
+
+            {/* LKPD Button */}
+            <button
+              onClick={onOpenLkpd}
+              className="px-3 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-emerald-900/30 flex items-center gap-1.5"
+              title="Lembar Kerja Peserta Didik (LKPD) & Cetak"
+            >
+              <FileText className="w-4 h-4" />
+              <span>LKPD</span>
             </button>
 
             {/* Theory Drawer Toggle */}

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { CrossMode, TraitConfig, PresetCross } from './types/genetics';
 import { PRESET_CROSSES } from './data/presets';
-import { buildPunnettSquare } from './utils/genetics';
+import { buildPunnettSquare, computeRatios } from './utils/genetics';
 import { Header } from './components/Header';
 import { ParentSelector } from './components/ParentSelector';
 import { GameteDisplay } from './components/GameteDisplay';
@@ -11,6 +11,7 @@ import { ProbabilityCalculator } from './components/ProbabilityCalculator';
 import { TheoryPanel } from './components/TheoryPanel';
 import { QuizModal } from './components/QuizModal';
 import { CustomTraitModal } from './components/CustomTraitModal';
+import { LkpdModal } from './components/LkpdModal';
 import { Dna, Sparkles, BookOpen, RefreshCw, CheckCircle2 } from 'lucide-react';
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
   const [isTheoryOpen, setIsTheoryOpen] = useState<boolean>(false);
   const [isQuizOpen, setIsQuizOpen] = useState<boolean>(false);
   const [isCustomTraitOpen, setIsCustomTraitOpen] = useState<boolean>(false);
+  const [isLkpdOpen, setIsLkpdOpen] = useState<boolean>(false);
 
   // Notification Toast State
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -112,7 +114,22 @@ export default function App() {
   };
 
   // Calculate Punnett flat cells for ratio & probability analysis
-  const { flatCells } = buildPunnettSquare(p1Genotype, p2Genotype, mode, trait1, trait2);
+  const { rowGametes, colGametes, matrix, flatCells } = buildPunnettSquare(p1Genotype, p2Genotype, mode, trait1, trait2);
+  const { genotypicRatios, phenotypicRatios } = computeRatios(flatCells, mode, trait1, trait2);
+
+  // Helper for parent phenotype string
+  const getPhenotypeString = (genotype: string) => {
+    if (mode === 'monohybrid') {
+      return genotype.includes(trait1.dominantSymbol) ? trait1.dominantName : trait1.recessiveName;
+    } else {
+      const t1Dom = genotype.slice(0, 2).includes(trait1.dominantSymbol);
+      const t1Pheno = t1Dom ? trait1.dominantName : trait1.recessiveName;
+      const t2DomSym = trait2 ? trait2.dominantSymbol : 'K';
+      const t2Dom = genotype.slice(2, 4).includes(t2DomSym);
+      const t2Pheno = trait2 ? (t2Dom ? trait2.dominantName : trait2.recessiveName) : '';
+      return `${t1Pheno}, ${t2Pheno}`;
+    }
+  };
 
   // Copy Summary text
   const handleCopySummary = () => {
@@ -138,6 +155,7 @@ export default function App() {
         onOpenQuiz={() => setIsQuizOpen(true)}
         onOpenCustomTrait={() => setIsCustomTraitOpen(true)}
         onToggleTheoryPanel={() => setIsTheoryOpen(!isTheoryOpen)}
+        onOpenLkpd={() => setIsLkpdOpen(true)}
         isTheoryOpen={isTheoryOpen}
         onCopySummary={handleCopySummary}
       />
@@ -247,8 +265,12 @@ export default function App() {
             </p>
           </div>
           <div className="flex items-center space-x-4 text-slate-400">
+            <button onClick={() => setIsLkpdOpen(true)} className="hover:text-emerald-400 text-teal-400 font-semibold transition-colors">
+              LKPD Siswa & Cetak
+            </button>
+            <span>&bull;</span>
             <button onClick={() => setIsTheoryOpen(true)} className="hover:text-teal-400 transition-colors">
-              Rangkuman Mendel
+              Materi & Referensi
             </button>
             <span>&bull;</span>
             <button onClick={() => setIsQuizOpen(true)} className="hover:text-teal-400 transition-colors">
@@ -259,7 +281,14 @@ export default function App() {
       </footer>
 
       {/* Modals & Drawers */}
-      <TheoryPanel isOpen={isTheoryOpen} onClose={() => setIsTheoryOpen(false)} />
+      <TheoryPanel
+        isOpen={isTheoryOpen}
+        onClose={() => setIsTheoryOpen(false)}
+        onOpenLkpd={() => {
+          setIsTheoryOpen(false);
+          setIsLkpdOpen(true);
+        }}
+      />
       
       <QuizModal isOpen={isQuizOpen} onClose={() => setIsQuizOpen(false)} />
 
@@ -268,6 +297,39 @@ export default function App() {
         onClose={() => setIsCustomTraitOpen(false)}
         currentMode={mode}
         onApplyCustomTraits={handleApplyCustomTraits}
+      />
+
+      <LkpdModal
+        isOpen={isLkpdOpen}
+        onClose={() => setIsLkpdOpen(false)}
+        mode={mode}
+        parent1Genotype={p1Genotype}
+        parent1Phenotype={getPhenotypeString(p1Genotype)}
+        parent2Genotype={p2Genotype}
+        parent2Phenotype={getPhenotypeString(p2Genotype)}
+        gametes1={rowGametes}
+        gametes2={colGametes}
+        punnettSquare={{
+          headersX: colGametes,
+          headersY: rowGametes,
+          grid: matrix.map((row) =>
+            row.map((cell) => ({
+              genotype: cell.genotype,
+              phenotype: cell.phenotypeName,
+              color: cell.colorClass,
+            }))
+          ),
+        }}
+        genotypeRatios={genotypicRatios.map((g) => ({
+          genotype: g.key,
+          count: g.count,
+          percentage: g.percentage,
+        }))}
+        phenotypeResults={phenotypicRatios.map((p) => ({
+          phenotype: p.key,
+          count: p.count,
+          percentage: p.percentage,
+        }))}
       />
 
     </div>
